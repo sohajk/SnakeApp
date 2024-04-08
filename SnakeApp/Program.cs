@@ -1,94 +1,83 @@
 ﻿using Microsoft.Extensions.Configuration;
+using SnakeApp.Helpers;
 using SnakeApp.Models;
 
 namespace SnakeApp
 {
     internal class Program
     {
+        private static Configuration _configuration;
+        private static int _gameover;
+
         static void Main(string[] args)
         {
-            var configFilePath = Path.Combine(Environment.CurrentDirectory, "appsettings.json");
-            if (!File.Exists(configFilePath))
+            var configBuilder = SetupConfiguration();
+
+            if (configBuilder == null)
             {
                 Console.WriteLine("The configuration file is missing.");
                 ShutDown();
-                return;
+
+                Environment.Exit(0);
             }
 
-            var configBuilder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", false, true)
-                .Build();
+            _configuration = configBuilder.GetSection(nameof(Configuration)).Get<Configuration>();
 
-            var configuration = configBuilder.GetSection(nameof(Configuration)).Get<Configuration>();
-
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(OnCancelKeyPress);
 
             Random randomnummer = new Random();
             int score = 5;
-            int gameover = 0;
-            pixel hoofd = new pixel
+            _gameover = 0;
+
+            Pixel hoofd = new Pixel
             {
-                xpos = configuration.WindowWidth / 2,
-                ypos = configuration.WindowHeight / 2,
-                schermkleur = ConsoleColor.Red
+                PositionX = _configuration.WindowWidth / 2,
+                PositionY = _configuration.WindowHeight / 2,
+                Schermkleur = ConsoleColor.Red
             };
+
             string movement = "RIGHT";
             List<int> xposlijf = new List<int>();
             List<int> yposlijf = new List<int>();
-            int berryx = randomnummer.Next(0, configuration.WindowWidth);
-            int berryy = randomnummer.Next(0, configuration.WindowHeight);
+            int berryx = randomnummer.Next(0, _configuration.WindowWidth);
+            int berryy = randomnummer.Next(0, _configuration.WindowHeight);
             DateTime tijd = DateTime.Now;
             DateTime tijd2 = DateTime.Now;
             string buttonpressed = "no";
-            while (true)
+
+            while (_gameover != 1)
             {
                 Console.Clear();
-                if (hoofd.xpos == configuration.WindowWidth - 1 || hoofd.xpos == 0 || hoofd.ypos == configuration.WindowHeight - 1 || hoofd.ypos == 0)
+                if (hoofd.PositionX == _configuration.WindowWidth - 1 || hoofd.PositionX == 0 || hoofd.PositionY == _configuration.WindowHeight - 1 || hoofd.PositionY == 0)
                 {
-                    gameover = 1;
+                    _gameover = 1;
                 }
-                for (int i = 0; i < configuration.WindowWidth; i++)
-                {
-                    Console.SetCursorPosition(i, 0);
-                    Console.Write("■");
-                }
-                for (int i = 0; i < configuration.WindowWidth; i++)
-                {
-                    Console.SetCursorPosition(i, configuration.WindowHeight - 1);
-                    Console.Write("■");
-                }
-                for (int i = 0; i < configuration.WindowHeight; i++)
-                {
-                    Console.SetCursorPosition(0, i);
-                    Console.Write("■");
-                }
-                for (int i = 0; i < configuration.WindowHeight; i++)
-                {
-                    Console.SetCursorPosition(configuration.WindowWidth - 1, i);
-                    Console.Write("■");
-                }
+
+                DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
+
+
                 Console.ForegroundColor = ConsoleColor.Green;
-                if (berryx == hoofd.xpos && berryy == hoofd.ypos)
+                if (berryx == hoofd.PositionX && berryy == hoofd.PositionY)
                 {
                     score++;
-                    berryx = randomnummer.Next(1, configuration.WindowWidth - 2);
-                    berryy = randomnummer.Next(1, configuration.WindowHeight - 2);
+                    berryx = randomnummer.Next(1, _configuration.WindowWidth - 2);
+                    berryy = randomnummer.Next(1, _configuration.WindowHeight - 2);
                 }
                 for (int i = 0; i < xposlijf.Count(); i++)
                 {
                     Console.SetCursorPosition(xposlijf[i], yposlijf[i]);
                     Console.Write("■");
-                    if (xposlijf[i] == hoofd.xpos && yposlijf[i] == hoofd.ypos)
+                    if (xposlijf[i] == hoofd.PositionX && yposlijf[i] == hoofd.PositionY)
                     {
-                        gameover = 1;
+                        _gameover = 1;
                     }
                 }
-                if (gameover == 1)
+                if (_gameover == 1)
                 {
                     break;
                 }
-                Console.SetCursorPosition(hoofd.xpos, hoofd.ypos);
-                Console.ForegroundColor = hoofd.schermkleur;
+                Console.SetCursorPosition(hoofd.PositionX, hoofd.PositionY);
+                Console.ForegroundColor = hoofd.Schermkleur;
                 Console.Write("■");
                 Console.SetCursorPosition(berryx, berryy);
                 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -125,21 +114,21 @@ namespace SnakeApp
                         }
                     }
                 }
-                xposlijf.Add(hoofd.xpos);
-                yposlijf.Add(hoofd.ypos);
+                xposlijf.Add(hoofd.PositionX);
+                yposlijf.Add(hoofd.PositionY);
                 switch (movement)
                 {
                     case "UP":
-                        hoofd.ypos--;
+                        hoofd.PositionY--;
                         break;
                     case "DOWN":
-                        hoofd.ypos++;
+                        hoofd.PositionY++;
                         break;
                     case "LEFT":
-                        hoofd.xpos--;
+                        hoofd.PositionX--;
                         break;
                     case "RIGHT":
-                        hoofd.xpos++;
+                        hoofd.PositionX++;
                         break;
                 }
                 if (xposlijf.Count() > score)
@@ -148,20 +137,47 @@ namespace SnakeApp
                     yposlijf.RemoveAt(0);
                 }
             }
-            Console.SetCursorPosition(configuration.WindowWidth / 5, configuration.WindowHeight / 2);
+            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2);
             Console.WriteLine("Game over, Score: " + score);
-            Console.SetCursorPosition(configuration.WindowWidth / 5, configuration.WindowHeight / 2 + 1);
+            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2 + 1);
         }
 
-        class pixel
+        /// <summary>
+        /// Try to set configuration from appsetings file.
+        /// </summary>
+        /// <returns>ConfigurationBuilder if the setup succeed, null otherwis.</returns>
+        private static IConfigurationRoot SetupConfiguration()
         {
-            public int xpos { get; set; }
-            public int ypos { get; set; }
-            public ConsoleColor schermkleur { get; set; }
+            var configFilePath = Path.Combine(Environment.CurrentDirectory, "appsettings.json");
+            if (!File.Exists(configFilePath))
+            {
+                return null;
+            }
+
+            var configBuilder = new ConfigurationBuilder()
+                .SetBasePath(Environment.CurrentDirectory)
+                .AddJsonFile("appsettings.json", false, true)
+                .Build();
+
+            return configBuilder;
+        }
+
+        /// <summary>
+        /// Callback if ctrl+c is pressed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            _gameover = 1;
+            ShutDown();
+
+            Environment.Exit(0);
         }
 
         private static void ShutDown()
         {
+            Console.Clear();
             Console.WriteLine();
             Console.WriteLine("Press any key to close the app.");
             Console.ReadLine();
