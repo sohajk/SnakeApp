@@ -8,10 +8,12 @@ namespace SnakeApp
     {
         private static Configuration _configuration;
         private static int _gameover;
+        private static Pixel _fruit;
+        private static Pixel _snakeHead;
 
         static void Main(string[] args)
         {
-            var configBuilder = SetupConfiguration();
+            var configBuilder = GetConfiguration();
 
             if (configBuilder == null)
             {
@@ -25,22 +27,17 @@ namespace SnakeApp
 
             Console.CancelKeyPress += new ConsoleCancelEventHandler(OnCancelKeyPress);
 
-            Random randomnummer = new Random();
-            int score = 5;
-            _gameover = 0;
+            SetupConsoleWindow();
 
-            Pixel hoofd = new Pixel
-            {
-                PositionX = _configuration.WindowWidth / 2,
-                PositionY = _configuration.WindowHeight / 2,
-                Schermkleur = ConsoleColor.Red
-            };
+            _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
+            _snakeHead = DrawHelper.GetRandomPixel(_configuration.WindowWidth / 2, _configuration.WindowHeight / 2, ConsoleColor.Red);
+
+            int score = 0;
+            _gameover = 0;
 
             string movement = "RIGHT";
             List<int> xposlijf = new List<int>();
             List<int> yposlijf = new List<int>();
-            int berryx = randomnummer.Next(0, _configuration.WindowWidth);
-            int berryy = randomnummer.Next(0, _configuration.WindowHeight);
             DateTime tijd = DateTime.Now;
             DateTime tijd2 = DateTime.Now;
             string buttonpressed = "no";
@@ -48,26 +45,25 @@ namespace SnakeApp
             while (_gameover != 1)
             {
                 Console.Clear();
-                if (hoofd.PositionX == _configuration.WindowWidth - 1 || hoofd.PositionX == 0 || hoofd.PositionY == _configuration.WindowHeight - 1 || hoofd.PositionY == 0)
+
+                DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
+
+                if (_snakeHead.PositionX == _configuration.WindowWidth - 1 || _snakeHead.PositionX == 0 || _snakeHead.PositionY == _configuration.WindowHeight - 1 || _snakeHead.PositionY == 0)
                 {
                     _gameover = 1;
                 }
 
-                DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
-
-
                 Console.ForegroundColor = ConsoleColor.Green;
-                if (berryx == hoofd.PositionX && berryy == hoofd.PositionY)
+                if (_fruit.PositionX == _snakeHead.PositionX && _fruit.PositionY == _snakeHead.PositionY)
                 {
                     score++;
-                    berryx = randomnummer.Next(1, _configuration.WindowWidth - 2);
-                    berryy = randomnummer.Next(1, _configuration.WindowHeight - 2);
+                    _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
                 }
                 for (int i = 0; i < xposlijf.Count(); i++)
                 {
                     Console.SetCursorPosition(xposlijf[i], yposlijf[i]);
                     Console.Write("■");
-                    if (xposlijf[i] == hoofd.PositionX && yposlijf[i] == hoofd.PositionY)
+                    if (xposlijf[i] == _snakeHead.PositionX && yposlijf[i] == _snakeHead.PositionY)
                     {
                         _gameover = 1;
                     }
@@ -76,10 +72,10 @@ namespace SnakeApp
                 {
                     break;
                 }
-                Console.SetCursorPosition(hoofd.PositionX, hoofd.PositionY);
-                Console.ForegroundColor = hoofd.Schermkleur;
+                Console.SetCursorPosition(_snakeHead.PositionX, _snakeHead.PositionY);
+                Console.ForegroundColor = _snakeHead.Schermkleur;
                 Console.Write("■");
-                Console.SetCursorPosition(berryx, berryy);
+                DrawHelper.DrawPixel(_fruit);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("■");
                 tijd = DateTime.Now;
@@ -114,21 +110,21 @@ namespace SnakeApp
                         }
                     }
                 }
-                xposlijf.Add(hoofd.PositionX);
-                yposlijf.Add(hoofd.PositionY);
+                xposlijf.Add(_snakeHead.PositionX);
+                yposlijf.Add(_snakeHead.PositionY);
                 switch (movement)
                 {
                     case "UP":
-                        hoofd.PositionY--;
+                        _snakeHead.PositionY--;
                         break;
                     case "DOWN":
-                        hoofd.PositionY++;
+                        _snakeHead.PositionY++;
                         break;
                     case "LEFT":
-                        hoofd.PositionX--;
+                        _snakeHead.PositionX--;
                         break;
                     case "RIGHT":
-                        hoofd.PositionX++;
+                        _snakeHead.PositionX++;
                         break;
                 }
                 if (xposlijf.Count() > score)
@@ -146,7 +142,7 @@ namespace SnakeApp
         /// Try to set configuration from appsetings file.
         /// </summary>
         /// <returns>ConfigurationBuilder if the setup succeed, null otherwis.</returns>
-        private static IConfigurationRoot SetupConfiguration()
+        private static IConfigurationRoot GetConfiguration()
         {
             var configFilePath = Path.Combine(Environment.CurrentDirectory, "appsettings.json");
             if (!File.Exists(configFilePath))
@@ -160,6 +156,12 @@ namespace SnakeApp
                 .Build();
 
             return configBuilder;
+        }
+
+        private static void SetupConsoleWindow()
+        {
+            Console.CursorVisible = false;
+            Console.SetWindowSize(_configuration.WindowWidth, _configuration.WindowHeight);
         }
 
         /// <summary>
