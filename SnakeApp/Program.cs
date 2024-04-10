@@ -9,7 +9,7 @@ namespace SnakeApp
         private static Configuration _configuration;
         private static int _gameover;
         private static Pixel _fruit;
-        private static Pixel _snakeHead;
+        private static Snake _snake;
 
         static void Main(string[] args)
         {
@@ -29,52 +29,44 @@ namespace SnakeApp
 
             SetupConsoleWindow();
 
-            _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
-            _snakeHead = DrawHelper.GetRandomPixel(_configuration.WindowWidth / 2, _configuration.WindowHeight / 2, ConsoleColor.Red);
+            var newPositionX = _configuration.WindowWidth / 2;
+            var newPositionY = _configuration.WindowHeight / 2;
+
+            _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.Cyan);
+            _snake = new Snake(newPositionX, newPositionY);
 
             int score = 0;
             _gameover = 0;
 
             string movement = "RIGHT";
-            List<int> xposlijf = new List<int>();
-            List<int> yposlijf = new List<int>();
             DateTime tijd = DateTime.Now;
             DateTime tijd2 = DateTime.Now;
             string buttonpressed = "no";
 
+            DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
+
             while (_gameover != 1)
             {
-                Console.Clear();
-
-                DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
-
-                if (_snakeHead.PositionX == _configuration.WindowWidth - 1 || _snakeHead.PositionX == 0 || _snakeHead.PositionY == _configuration.WindowHeight - 1 || _snakeHead.PositionY == 0)
+                if (newPositionX == _configuration.WindowWidth - 1 || newPositionX == 0 || newPositionY == _configuration.WindowHeight - 1 || newPositionY == 0)
                 {
                     _gameover = 1;
                 }
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                if (_fruit.PositionX == _snakeHead.PositionX && _fruit.PositionY == _snakeHead.PositionY)
+
+                if (_fruit.PositionX == _snake.Head.PositionX && _fruit.PositionY == _snake.Head.PositionY)
                 {
                     score++;
                     _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
                 }
-                for (int i = 0; i < xposlijf.Count(); i++)
-                {
-                    Console.SetCursorPosition(xposlijf[i], yposlijf[i]);
-                    Console.Write("■");
-                    if (xposlijf[i] == _snakeHead.PositionX && yposlijf[i] == _snakeHead.PositionY)
-                    {
-                        _gameover = 1;
-                    }
-                }
+
                 if (_gameover == 1)
                 {
                     break;
                 }
-                Console.SetCursorPosition(_snakeHead.PositionX, _snakeHead.PositionY);
-                Console.ForegroundColor = _snakeHead.Schermkleur;
-                Console.Write("■");
+
+                DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, score);
+                
                 DrawHelper.DrawPixel(_fruit);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("■");
@@ -110,29 +102,26 @@ namespace SnakeApp
                         }
                     }
                 }
-                xposlijf.Add(_snakeHead.PositionX);
-                yposlijf.Add(_snakeHead.PositionY);
+
+                _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Schermkleur = ConsoleColor.Green });
+
                 switch (movement)
                 {
                     case "UP":
-                        _snakeHead.PositionY--;
+                        newPositionY--;
                         break;
                     case "DOWN":
-                        _snakeHead.PositionY++;
+                        newPositionY++;
                         break;
                     case "LEFT":
-                        _snakeHead.PositionX--;
+                        newPositionX--;
                         break;
                     case "RIGHT":
-                        _snakeHead.PositionX++;
+                        newPositionX++;
                         break;
                 }
-                if (xposlijf.Count() > score)
-                {
-                    xposlijf.RemoveAt(0);
-                    yposlijf.RemoveAt(0);
-                }
             }
+
             Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2);
             Console.WriteLine("Game over, Score: " + score);
             Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2 + 1);
