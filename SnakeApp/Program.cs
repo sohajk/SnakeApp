@@ -47,29 +47,40 @@ namespace SnakeApp
 
             while (_gameover != 1)
             {
+                // Check hit with border
                 if (newPositionX == _configuration.WindowWidth - 1 || newPositionX == 0 || newPositionY == _configuration.WindowHeight - 1 || newPositionY == 0)
                 {
                     _gameover = 1;
                 }
 
-                Console.ForegroundColor = ConsoleColor.Green;
-
-                if (_fruit.PositionX == _snake.Head.PositionX && _fruit.PositionY == _snake.Head.PositionY)
+                // Check hit with body
+                if (_snake.Body.Any(b => b.PositionX == newPositionX && b.PositionY == newPositionY))
                 {
-                    score++;
-                    _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
+                    _gameover = 1;
                 }
 
+                _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Schermkleur = ConsoleColor.Green });
+                
                 if (_gameover == 1)
                 {
                     break;
                 }
 
+                // Check if get fruit
+                if (_fruit.PositionX == _snake.Head.PositionX && _fruit.PositionY == _snake.Head.PositionY)
+                {
+                    score++;
+
+                    _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
+                }
+
                 DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, score);
-                
+
+
                 DrawHelper.DrawPixel(_fruit);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("■");
+
                 tijd = DateTime.Now;
                 buttonpressed = "no";
                 while (true)
@@ -102,8 +113,6 @@ namespace SnakeApp
                         }
                     }
                 }
-
-                _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Schermkleur = ConsoleColor.Green });
 
                 switch (movement)
                 {

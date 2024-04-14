@@ -63,22 +63,16 @@ namespace SnakeApp.Helpers
             snake.Head.PositionY = newPositionY;
 
             // Draw snake's body
-            for (int i = 0; i < snake.Body.Count(); i++)
+            for (int i = 0; i < snake.Body.Count; i++)
             {
                 var bodyPart = snake.Body[i];
                 Console.SetCursorPosition(bodyPart.PositionX, bodyPart.PositionY);
                 Console.ForegroundColor = bodyPart.Schermkleur;
                 Console.Write("■");
                 Console.ResetColor();
-
-                // TODO move to program check head for border and check head for body
-                //if (snake.Body[i].PositionX == snake.Head.PositionX && snake.Body[i].PositionY == snake.Head.PositionY)
-                //{
-                //    _gameover = 1;
-                //}
             }
 
-            // Clear last snake's body part if score was raised
+            // Clear last snake's body part if score was not raised
             if (snake.Body.Count > score)
             {
                 Console.SetCursorPosition(snake.Body[0].PositionX, snake.Body[0].PositionY);
