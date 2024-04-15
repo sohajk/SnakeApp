@@ -7,7 +7,7 @@ namespace SnakeApp
     internal class Program
     {
         private static Configuration _configuration;
-        private static int _gameover;
+        private static bool _gameover;
         private static Pixel _fruit;
         private static Snake _snake;
 
@@ -43,33 +43,29 @@ namespace SnakeApp
 
             DrawHelper.DrawFruit(_fruit);
 
-            int score = 0;
-            _gameover = 0;
-
-            string movement = "RIGHT";
-            DateTime tijd = DateTime.Now;
-            DateTime tijd2 = DateTime.Now;
-            string buttonpressed = "no";
+            var score = 0;
+            var movement = ConsoleKey.RightArrow;
+            _gameover = false;
 
             DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
 
-            while (_gameover != 1)
+            while (!_gameover)
             {
                 // Check hit with border
                 if (newPositionX == _configuration.WindowWidth - 1 || newPositionX == 0 || newPositionY == _configuration.WindowHeight - 1 || newPositionY == 0)
                 {
-                    _gameover = 1;
+                    _gameover = true;
                 }
 
                 // Check hit with body
                 if (_snake.Body.Any(b => b.PositionX == newPositionX && b.PositionY == newPositionY))
                 {
-                    _gameover = 1;
+                    _gameover = true;
                 }
 
                 _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Color = ConsoleColor.Green });
 
-                if (_gameover == 1)
+                if (_gameover == true)
                 {
                     break;
                 }
@@ -88,51 +84,32 @@ namespace SnakeApp
 
                 DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, score);
 
-                tijd = DateTime.Now;
-                buttonpressed = "no";
-                while (true)
+                var timeStart = DateTime.Now;
+                var timeStop = DateTime.Now;
+
+                while (timeStop.Subtract(timeStart).TotalMilliseconds < _configuration.KeyPressedInterval)
                 {
-                    tijd2 = DateTime.Now;
-                    if (tijd2.Subtract(tijd).TotalMilliseconds > 500) { break; }
+                    // Set movement only if a key has been already pressed, do not wait for it
                     if (Console.KeyAvailable)
                     {
-                        ConsoleKeyInfo toets = Console.ReadKey(true);
-                        //Console.WriteLine(toets.Key.ToString());
-                        if (toets.Key.Equals(ConsoleKey.UpArrow) && movement != "DOWN" && buttonpressed == "no")
-                        {
-                            movement = "UP";
-                            buttonpressed = "yes";
-                        }
-                        if (toets.Key.Equals(ConsoleKey.DownArrow) && movement != "UP" && buttonpressed == "no")
-                        {
-                            movement = "DOWN";
-                            buttonpressed = "yes";
-                        }
-                        if (toets.Key.Equals(ConsoleKey.LeftArrow) && movement != "RIGHT" && buttonpressed == "no")
-                        {
-                            movement = "LEFT";
-                            buttonpressed = "yes";
-                        }
-                        if (toets.Key.Equals(ConsoleKey.RightArrow) && movement != "LEFT" && buttonpressed == "no")
-                        {
-                            movement = "RIGHT";
-                            buttonpressed = "yes";
-                        }
+                        movement = Console.ReadKey(true).Key;
                     }
+
+                    timeStop = DateTime.Now;
                 }
 
                 switch (movement)
                 {
-                    case "UP":
+                    case ConsoleKey.UpArrow:
                         newPositionY--;
                         break;
-                    case "DOWN":
+                    case ConsoleKey.DownArrow:
                         newPositionY++;
                         break;
-                    case "LEFT":
+                    case ConsoleKey.LeftArrow:
                         newPositionX--;
                         break;
-                    case "RIGHT":
+                    case ConsoleKey.RightArrow:
                         newPositionX++;
                         break;
                 }
@@ -163,6 +140,9 @@ namespace SnakeApp
             return configBuilder;
         }
 
+        /// <summary>
+        /// Set basic windows settings
+        /// </summary>
         private static void SetupConsoleWindow()
         {
             Console.CursorVisible = false;
@@ -176,7 +156,7 @@ namespace SnakeApp
         /// <param name="e"></param>
         static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            _gameover = 1;
+            _gameover = true;
             ShutDown();
 
             Environment.Exit(0);
