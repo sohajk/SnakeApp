@@ -8,6 +8,7 @@ namespace SnakeApp
     {
         private static Configuration _configuration;
         private static bool _gameover;
+        private static int _score;
         private static Pixel _fruit;
         private static Snake _snake;
 
@@ -29,25 +30,33 @@ namespace SnakeApp
 
             SetupConsoleWindow();
 
-            var newPositionX = _configuration.WindowWidth / 2;
-            var newPositionY = _configuration.WindowHeight / 2;
-            var (positionX, positionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
+            _gameover = false;
+            _score = 0;
+
+            var (fruitPositionX, fruitPositionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
+            var (snakePositionX, snakePositionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth - 10, _configuration.WindowHeight - 10);
 
             _fruit = new Pixel()
             {
-                PositionX = positionX,
-                PositionY = positionY,
+                PositionX = fruitPositionX,
+                PositionY = fruitPositionY,
                 Color = ConsoleColor.Cyan
             };
-            _snake = new Snake(newPositionX, newPositionY);
-
-            DrawHelper.DrawFruit(_fruit);
-
-            var score = 0;
-            var movement = ConsoleKey.RightArrow;
-            _gameover = false;
+            _snake = new Snake(snakePositionX, snakePositionY);
 
             DrawHelper.DrawWindowBorder(_configuration.WindowWidth, _configuration.WindowHeight);
+            DrawHelper.DrawFruit(_fruit);
+
+            RunGame();
+
+            ShutDown();
+        }
+
+        private static void RunGame()
+        {
+            var newPositionX = _configuration.WindowWidth / 2;
+            var newPositionY = _configuration.WindowHeight / 2;
+            var movement = ConsoleKey.RightArrow;
 
             while (!_gameover)
             {
@@ -73,16 +82,16 @@ namespace SnakeApp
                 // Check if get fruit
                 if (_fruit.PositionX == _snake.Head.PositionX && _fruit.PositionY == _snake.Head.PositionY)
                 {
-                    score++;
+                    _score++;
 
-                    (positionX, positionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
+                    var (positionX, positionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
                     _fruit.PositionX = positionX;
                     _fruit.PositionY = positionY;
 
                     DrawHelper.DrawFruit(_fruit);
                 }
 
-                DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, score);
+                DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, _score);
 
                 var timeStart = DateTime.Now;
                 var timeStop = DateTime.Now;
@@ -114,10 +123,6 @@ namespace SnakeApp
                         break;
                 }
             }
-
-            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2);
-            Console.WriteLine("Game over, Score: " + score);
-            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2 + 1);
         }
 
         /// <summary>
@@ -167,6 +172,11 @@ namespace SnakeApp
             Console.Clear();
             Console.WriteLine();
             Console.WriteLine("Press any key to close the app.");
+
+            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2);
+            Console.WriteLine("Game over, Score: " + _score);
+            Console.SetCursorPosition(_configuration.WindowWidth / 5, _configuration.WindowHeight / 2 + 1);
+
             Console.ReadLine();
         }
     }
