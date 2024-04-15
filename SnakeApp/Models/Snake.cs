@@ -13,7 +13,7 @@
             {
                 PositionX = postionX,
                 PositionY = positionY,
-                Schermkleur = ConsoleColor.DarkRed
+                Color = ConsoleColor.DarkRed
             };
 
             Body = new List<Pixel>();

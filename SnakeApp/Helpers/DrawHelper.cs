@@ -8,48 +8,36 @@ namespace SnakeApp.Helpers
         {
             for (int i = 0; i < width; i++)
             {
-                Console.SetCursorPosition(i, 0);
-                Console.Write("■");
-
-                Console.SetCursorPosition(i, height - 1);
-                Console.Write("■");
+                DrawPixel(i, 0, ConsoleColor.Cyan);
+                DrawPixel(i, height - 1, ConsoleColor.Cyan);
             }
 
             for (int i = 0; i < height; i++)
             {
-                Console.SetCursorPosition(0, i);
-                Console.Write("■");
-
-                Console.SetCursorPosition(width - 1, i);
-                Console.Write("■");
+                DrawPixel(0, i, ConsoleColor.Cyan);
+                DrawPixel(width - 1, i, ConsoleColor.Cyan);
             }
         }
 
-        internal static Pixel GetRandomPixel(int windowWidth, int windowHeight, ConsoleColor consoleColor)
+        internal static (int positionX, int positionY) GetRandomPixelPosition(int windowWidth, int windowHeight)
         {
             Random randomnummer = new Random();
 
-            var pixel = new Pixel()
-            {
-                PositionX = randomnummer.Next(1, windowWidth - 2),
-                PositionY = randomnummer.Next(1, windowHeight - 2),
-                Schermkleur = consoleColor
-            };
+            var positionX = randomnummer.Next(1, windowWidth - 2);
+            var positionY = randomnummer.Next(1, windowHeight - 2);
 
-            return pixel;
+            return (positionX, positionY);
         }
 
-        internal static void DrawPixel(Pixel pixel)
+        internal static void DrawFruit(Pixel pixel)
         {
-            Console.SetCursorPosition(pixel.PositionX, pixel.PositionY);
+            DrawPixel(pixel);
         }
 
         internal static void DrawSnake(int newPositionX, int newPositionY, Snake snake, int score)
         {
             // Draw snake's head
-            Console.SetCursorPosition(newPositionX, newPositionY);
-            Console.ForegroundColor = snake.Head.Schermkleur;
-            Console.Write("■");
+            DrawPixel(newPositionX, newPositionY, snake.Head.Color);
             Console.ResetColor();
 
             // Clear previous head's position, if there is no body to be overwrited by
@@ -66,9 +54,7 @@ namespace SnakeApp.Helpers
             for (int i = 0; i < snake.Body.Count; i++)
             {
                 var bodyPart = snake.Body[i];
-                Console.SetCursorPosition(bodyPart.PositionX, bodyPart.PositionY);
-                Console.ForegroundColor = bodyPart.Schermkleur;
-                Console.Write("■");
+                DrawPixel(bodyPart);
                 Console.ResetColor();
             }
 
@@ -81,8 +67,17 @@ namespace SnakeApp.Helpers
             }
         }
 
-        internal static void DrawMovement()
+        private static void DrawPixel(Pixel pixel)
         {
+            DrawPixel(pixel.PositionX, pixel.PositionY, pixel.Color);
+        }
+
+        private static void DrawPixel(int positionX, int positionY, ConsoleColor color)
+        {
+            Console.SetCursorPosition(positionX, positionY);
+            Console.ForegroundColor = color;
+            Console.Write("■");
+            Console.ResetColor();
         }
     }
 }

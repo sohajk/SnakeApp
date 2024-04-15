@@ -4,6 +4,6 @@
     {
         public int PositionX { get; set; }
         public int PositionY { get; set; }
-        public ConsoleColor Schermkleur { get; set; }
+        public ConsoleColor Color { get; set; }
     }
 }

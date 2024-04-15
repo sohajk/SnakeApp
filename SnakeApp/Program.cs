@@ -31,9 +31,17 @@ namespace SnakeApp
 
             var newPositionX = _configuration.WindowWidth / 2;
             var newPositionY = _configuration.WindowHeight / 2;
+            var (positionX, positionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
 
-            _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.Cyan);
+            _fruit = new Pixel()
+            {
+                PositionX = positionX,
+                PositionY = positionY,
+                Color = ConsoleColor.Cyan
+            };
             _snake = new Snake(newPositionX, newPositionY);
+
+            DrawHelper.DrawFruit(_fruit);
 
             int score = 0;
             _gameover = 0;
@@ -59,8 +67,8 @@ namespace SnakeApp
                     _gameover = 1;
                 }
 
-                _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Schermkleur = ConsoleColor.Green });
-                
+                _snake.Body.Add(new Pixel() { PositionX = _snake.Head.PositionX, PositionY = _snake.Head.PositionY, Color = ConsoleColor.Green });
+
                 if (_gameover == 1)
                 {
                     break;
@@ -71,15 +79,14 @@ namespace SnakeApp
                 {
                     score++;
 
-                    _fruit = DrawHelper.GetRandomPixel(_configuration.WindowWidth, _configuration.WindowHeight, ConsoleColor.White);
+                    (positionX, positionY) = DrawHelper.GetRandomPixelPosition(_configuration.WindowWidth, _configuration.WindowHeight);
+                    _fruit.PositionX = positionX;
+                    _fruit.PositionY = positionY;
+
+                    DrawHelper.DrawFruit(_fruit);
                 }
 
                 DrawHelper.DrawSnake(newPositionX, newPositionY, _snake, score);
-
-
-                DrawHelper.DrawPixel(_fruit);
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write("■");
 
                 tijd = DateTime.Now;
                 buttonpressed = "no";
